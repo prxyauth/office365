@@ -16,6 +16,7 @@
 # next.js
 /.next/
 /out/
+/office365
 
 # production
 /build
