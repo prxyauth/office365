@@ -1,7 +1,7 @@
 
 
-const getApiBaseUrl = () => process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api";
-const getApiKey = () => process.env.API_KEY || process.env.NEXT_PUBLIC_API_KEY || "";
+const getApiBaseUrl = () => process.env.API_BASE_URL || "http://localhost:8000/api";
+const getApiKey = () => process.env.API_KEY || "";
 
 async function request(path: string, options?: RequestInit) {
   const response = await fetch(`${getApiBaseUrl()}${path}`, {

@@ -3,8 +3,8 @@ const nextConfig = {
   images: { unoptimized: true },
   trailingSlash: true,
   env: {
-    NEXT_PUBLIC_API_KEY: process.env.NEXT_PUBLIC_API_KEY,
-    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    API_KEY: process.env.API_KEY,
+    API_BASE_URL: process.env.API_BASE_URL,
   },
 };
 
